@@ -1,0 +1,254 @@
+﻿@page "/vehiculos"
+<h3>Vehiculos</h3>
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="card dcard">
+    <div class="card-body px-1 px-md-3">
+
+        <form autocomplete="off">
+            <div class="d-flex justify-content-between flex-column flex-sm-row mb-3 px-2 px-sm-0">
+                <h3 class="text-125 pl-1 mb-3 mb-sm-0 text-secondary-d4">
+                    Listado de Vehiculos
+                </h3>
+
+                <div class="mb-2 mb-sm-0">
+                    <button type="button" class="btn btn-secondary px-3 d-block w-100 text-95 radius-round border-2 brc-black-tp10" @onclick="MostrarModalDeAgregar">
+                        <i class="fa fa-plus mr-1"></i>
+                        Agregar <span class="d-sm-none d-md-inline">Vehiculo</span>
+                    </button>
+                </div>
+            </div>
+
+            @if (ListaDeVehiculos == null)
+            {
+                <p><em>Cargando Listado De Vehiculos...</em></p>
+            }
+            else
+            {
+                <table id="simple-table" class="mb-0 table table-borderless table-bordered-x brc-secondary-l3 text-dark-m2 radius-1 overflow-hidden">
+                    <thead class="text-dark-tp3 bgc-grey-l4 text-90 border-b-1 brc-transparent">
+                        <tr>
+                            <th>Matricula</th>
+                            <th>Marca Del Vehiculo</th>
+                            <th>Modelo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="mt-1">
+
+                        @foreach (var Vehiculo in ListaDeVehiculos)
+                        {
+                            <tr class="bgc-h-yellow-l4 d-style">
+                                <td class="text-600 text-dark">@Vehiculo.Matricula</td>
+                                <td class="text-600 text-dark-d2">@Vehiculo.MarcaVehiculo</td>
+                                <td class="d-none d-sm-table-cell text-grey-d1">@Vehiculo.Modelo</td>
+                                <td>
+                                    <div class="d-none d-lg-flex">
+
+                                        <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-success btn-a-lighter-success" @onclick="() => MostrarModalDeActualizar(Vehiculo.Matricula)">
+                                            <i class="fa fa-pencil-alt"></i>
+                                        </button>
+
+                                        <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-danger btn-a-lighter-danger" @*@onclick="() => MostrarModalDeEliminar(Aula.NumeroAula)" *@>
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>
+
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalEdicionDeVehiculo" tabindex="-1" role="dialog" aria-labelledby="LabelEdicionDeAula" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary-d3" id="LabelEdicionDeAula">
+                    @(AccionDeEdicion + " " + "Vehiculo")
+                </h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="@vehiculoModel" OnValidSubmit="@GuardarVehiculos">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Matricula" class="mb-0">Matricula de Vehiculo</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Matricula" @bind-Value="@vehiculoModel.Matricula" disabled="@(AccionDeEdicion == "Actualizar" ? true : false)"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese número de Matricula" />
+                            <ValidationMessage For="() => vehiculoModel.Matricula" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Marca" class="mb-0">Marca</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Marca" @bind-Value="@vehiculoModel.MarcaVehiculo"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese horario" />
+                            <ValidationMessage For="() => vehiculoModel.MarcaVehiculo" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Modelo</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Modelo" @bind-Value="@vehiculoModel.Modelo"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese código curso" />
+                            <ValidationMessage For="() => vehiculoModel.Modelo" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+
+    private VehiculosDto[] ListaDeVehiculos;
+
+    private VehiculosDto vehiculoModel = new();
+
+    private string AccionDeEdicion;
+
+    private string matriculaUpdate;
+
+    private string UtlHost = "https://localhost:44373/api";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ObtenerVehiculos();
+    }
+
+    private async Task ObtenerVehiculos()
+    {
+        ListaDeVehiculos = await Http.GetFromJsonAsync<VehiculosDto[]>($"{UtlHost}/Vehiculos");
+    }
+
+    private async Task ObtenerVehiculoPorId(string Matricula)
+    {
+        vehiculoModel = await Http.GetFromJsonAsync<VehiculosDto>($"{UtlHost}/Vehiculos/{Matricula}");
+
+    }
+
+
+    private async Task MostrarModalDeAgregar()
+    {
+
+        AccionDeEdicion = "Agregar";
+
+        vehiculoModel = new();
+
+        await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeVehiculo");
+
+
+    }
+
+    private async Task MostrarModalDeActualizar(string Matricula)
+    {
+
+        AccionDeEdicion = "Actualizar";
+
+        await ObtenerVehiculoPorId(Matricula);
+
+        matriculaUpdate = Matricula;
+
+        await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeVehiculo");
+
+    }
+
+    private async Task GuardarVehiculos()
+    {
+        if (AccionDeEdicion == "Agregar")
+        {
+            await AgregarVehiculos();
+            vehiculoModel = new();
+        }
+        else
+        {
+            await ActualizarVehiculo(); //llama al método que va al API a actualizar un Aula
+        }
+    }
+
+    private async Task AgregarVehiculos()
+    {
+        var Vehiculos = vehiculoModel;
+
+        using var response = await Http.PostAsJsonAsync($"{UtlHost}/Vehiculos", Vehiculos);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeVehiculo");
+
+            await ObtenerVehiculos();
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo agregada correctamente");
+
+        }
+        else
+        {
+            string errorMessage = response.ReasonPhrase;
+            Console.WriteLine($"Error: {errorMessage}");
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo agregar el Vehiculo ");
+
+        }
+    }
+
+    private async Task ActualizarVehiculo()
+    {
+        var Vehiculos = vehiculoModel; //Este objeto "AulaDtoModel", contiene los valores que el usuario ingresa en los texbox, la magia lo hace el <EditForm Model="@AulaDtoModel", que llena automaticamente el objeto con lo que el usuario ingresa
+
+        using var response = await Http.PutAsJsonAsync($"{UtlHost}/Vehiculos/{matriculaUpdate}", Vehiculos);// ejemplo: https://localhost:44302/api/Aulas/23
+
+        if (response.IsSuccessStatusCode) //si todo sale bien con el llamado al API
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeVehiculo");
+
+            await ObtenerVehiculos(); //Se recarga la lista da ulas para poder ver el registro actualizado
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo actualizado correctamente");
+        }
+        else
+        {
+            string errorMessage = response.ReasonPhrase;
+            Console.WriteLine($"Error: {errorMessage}"); //Se muestra en la consola el error que devuelve el API
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo actualizar la Matricula ");
+
+        }
+    }
+}

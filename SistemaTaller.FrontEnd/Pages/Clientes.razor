@@ -1,0 +1,307 @@
+﻿@page "/clientes"
+<h3>Clientes</h3>
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="card dcard">
+    <div class="card-body px-1 px-md-3">
+
+        <form autocomplete="off">
+            <div class="d-flex justify-content-between flex-column flex-sm-row mb-3 px-2 px-sm-0">
+                <h3 class="text-125 pl-1 mb-3 mb-sm-0 text-secondary-d4">
+                    Listado de Clientes
+                </h3>
+
+                <div class="mb-2 mb-sm-0">
+                    <button type="button" class="btn btn-secondary px-3 d-block w-100 text-95 radius-round border-2 brc-black-tp10" @onclick="MostrarModalDeAgregar">
+                        <i class="fa fa-plus mr-1"></i>
+                        Agregar <span class="d-sm-none d-md-inline">Clientes</span>
+                    </button>
+                </div>
+            </div>
+
+            @if (ListaCliente == null)
+            {
+                <p><em>Cargando Listado De Clientes...</em></p>
+            }
+            else
+            {
+                <table id="simple-table" class="mb-0 table table-borderless table-bordered-x brc-secondary-l3 text-dark-m2 radius-1 overflow-hidden">
+                    <thead class="text-dark-tp3 bgc-grey-l4 text-90 border-b-1 brc-transparent">
+                        <tr>
+                            <th>Cedula Del Cliente</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Telefono</th>
+                            <th>Email</th>
+                            <th>Direccion</th>
+                            <th>Matricula del Vehiculo</th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody class="mt-1">
+
+                        @foreach (var Cliente in ListaCliente)
+                        {
+                            <tr class="bgc-h-yellow-l4 d-style">
+                                <td class="text-600 text-dark">@Cliente.CedulaCliente</td>
+                                <td class="text-600 text-dark-d2">@Cliente.Nombre</td>
+                                <td class="d-none d-sm-table-cell text-grey-d1">@Cliente.Apellidos</td>
+                                <td class="text-600 text-dark">@Cliente.Telefono</td>
+                                <td class="text-600 text-dark-d2">@Cliente.Email</td>
+                                <td class="d-none d-sm-table-cell text-grey-d1">@Cliente.Direccion</td>
+                                <td class="text-600 text-dark">@Cliente.VehiculoMatricula</td>
+
+                                <td>
+                                    <div class="d-none d-lg-flex">
+
+                                        <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-success btn-a-lighter-success" @*@onclick="() => MostrarModalDeActualizar(Aula.NumeroAula)" *@>
+                                            <i class="fa fa-pencil-alt"></i>
+                                        </button>
+
+                                        <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-danger btn-a-lighter-danger" @*@onclick="() => MostrarModalDeEliminar(Aula.NumeroAula)" *@>
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>
+
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalEdicionDeCliente" tabindex="-1" role="dialog" aria-labelledby="LabelEdicionDeAula" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary-d3" id="LabelEdicionDeAula">
+                    @(AccionDeEdicion + " " + "Cliente")
+                </h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="@clienteModel" OnValidSubmit="@GuardarCliente">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="CedulaCliente" class="mb-0">Cedula Cliente</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="CedulaCliente" @bind-Value="@clienteModel.CedulaCliente" disabled="@(AccionDeEdicion == "Actualizar" ? true : false)"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese número de Cedula" />
+                            <ValidationMessage For="() => clienteModel.CedulaCliente" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Nombre" class="mb-0">Nombre</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Nombre" @bind-Value="@clienteModel.Nombre"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Nombre" />
+                            <ValidationMessage For="() => clienteModel.Nombre" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Apellidos" class="mb-0">Apellidos</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Apellidos" @bind-Value="@clienteModel.Apellidos"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Apellidos" />
+                            <ValidationMessage For="() => clienteModel.Apellidos" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Telefono" class="mb-0">Telefono</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Telefono" @bind-Value="@clienteModel.Telefono"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Telefono" />
+                            <ValidationMessage For="() => clienteModel.Telefono" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Email" class="mb-0">Email</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Email" @bind-Value="@clienteModel.Email"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Email" />
+                            <ValidationMessage For="() => clienteModel.Email" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Direccion" class="mb-0">Direccion</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Direccion" @bind-Value="@clienteModel.Direccion"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Direccion" />
+                            <ValidationMessage For="() => clienteModel.Direccion" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="VehiculoMatricula" class="mb-0">Matricula de Vehiculo</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Apellidos" @bind-Value="@clienteModel.VehiculoMatricula"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese la Matricula del Vehiculo" />
+                            <ValidationMessage For="() => clienteModel.VehiculoMatricula" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ClientesDto[] ListaCliente;
+
+    private ClientesDto clienteModel = new();
+
+    private string AccionDeEdicion;
+
+    private string clienteUpdate;
+
+    private string UtlHost = "https://localhost:44373/api";
+
+    protected override async Task OnInitializedAsync() //Esto es lo primero que se ejecutará
+    {
+        await ObtenerClientes(); //con solo llamar a este método, ya se puede cargar la lista de aulas a nivel de la vista
+    }
+
+    private async Task ObtenerClientes()
+    {
+        ListaCliente = await Http.GetFromJsonAsync<ClientesDto[]>($"{UtlHost}/clientes");
+    }
+
+    private async Task ObtenerClientePorId(string CedulaCliente)
+    {
+        clienteModel = await Http.GetFromJsonAsync<ClientesDto>($"{UtlHost}/Cliente/{CedulaCliente}");
+
+    }
+
+    private async Task MostrarModalDeAgregar()
+    {
+
+        AccionDeEdicion = "Agregar";
+
+        clienteModel = new();
+
+        await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeCliente");
+
+
+    }
+
+    private async Task MostrarModalDeActualizar(string CedulaCliente)
+    {
+
+        AccionDeEdicion = "Actualizar";
+
+        await ObtenerClientePorId(CedulaCliente);
+
+        clienteUpdate = CedulaCliente;
+
+        await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeCliente");
+
+    }
+
+    private async Task GuardarCliente()
+    {
+        if (AccionDeEdicion == "Agregar")
+        {
+            await AgregarClientes();
+            clienteModel = new();
+        }
+        else
+        {
+            await ActualizarCliente();
+        }
+    }
+
+    private async Task AgregarClientes()
+    {
+        var Clientes = clienteModel;
+
+        using var response = await Http.PostAsJsonAsync($"{UtlHost}/Clientes", Clientes);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeCliente");
+
+            await ObtenerClientes();
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Cliente agregado correctamente");
+
+        }
+        else
+        {
+            string errorMessage = response.ReasonPhrase;
+            Console.WriteLine($"Error: {errorMessage}");
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo agregar el Cliente ");
+
+        }
+    }
+
+    private async Task ActualizarCliente()
+    {
+        var Clientes = clienteModel;
+
+        using var response = await Http.PutAsJsonAsync($"{UtlHost}/Clientes/{clienteUpdate}", Clientes);
+
+        if (response.IsSuccessStatusCode) //si todo sale bien con el llamado al API
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeCliente");
+
+            await ObtenerClientes();
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Cliente actualizado correctamente");
+        }
+        else
+        {
+            string errorMessage = response.ReasonPhrase;
+            Console.WriteLine($"Error: {errorMessage}");
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo actualizar el Cliente ");
+
+        }
+    }
+}
