@@ -1,0 +1,284 @@
+﻿@page "/repuestos"
+<h3>Repuestos</h3>
+
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="card dcard">
+    <div class="card-body px-1 px-md-3">
+
+        <form autocomplete="off">
+            <div class="d-flex justify-content-between flex-column flex-sm-row mb-3 px-2 px-sm-0">
+                <h3 class="text-125 pl-1 mb-3 mb-sm-0 text-secondary-d4">
+                    Listado de Repuestos
+                </h3>
+
+                <div class="mb-2 mb-sm-0">
+                    <button type="button" class="btn btn-secondary px-3 d-block w-100 text-95 radius-round border-2 brc-black-tp10" @onclick="MostrarModalDeAgregar">
+                        <i class="fa fa-plus mr-1"></i>
+                        Agregar <span class="d-sm-none d-md-inline">Repuestos</span>
+                    </button>
+                </div>
+            </div>
+
+            @if (ListaDeRepuestos == null)
+            {
+                <p><em>Cargando Listado De Repuestos...</em></p>
+            }
+            else
+            {
+                <table id="simple-table" class="mb-0 table table-borderless table-bordered-x brc-secondary-l3 text-dark-m2 radius-1 overflow-hidden">
+                    <thead class="text-dark-tp3 bgc-grey-l4 text-90 border-b-1 brc-transparent">
+                        <tr>
+                            <th>Codigo de Repuestos</th>
+                            <th>Marca</th>
+                            <th>Tipo</th>
+                            <th>Fecha De Compra</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="mt-1">
+
+                        @foreach (var Repuesto in ListaDeRepuestos)
+                        {
+                            <tr class="bgc-h-yellow-l4 d-style">
+                                <td class="text-600 text-dark">@Repuesto.CodigoRepuesto</td>
+                                <td class="text-600 text-dark-d2">@Repuesto.Marca</td>
+                                <td class="d-none d-sm-table-cell text-grey-d1">@Repuesto.Tipo</td>
+                                <td class="text-600 text-dark">@Repuesto.Precio</td>
+
+                                <td>
+                                    <div class="d-none d-lg-flex">
+
+                                        <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-success btn-a-lighter-success" @onclick="() => MostrarModalDeActualizar(Repuesto.CodigoRepuesto)">
+                                            <i class="fa fa-pencil-alt"></i>
+                                        </button>
+
+                                        <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-danger btn-a-lighter-danger" @*@onclick="() => MostrarModalDeEliminar(Aula.NumeroAula)" *@>
+                                            <i class="fa fa-trash-alt"></i>
+                                        </button>
+
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalEdicionDeRepuestos" tabindex="-1" role="dialog" aria-labelledby="LabelEdicionDeAula" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary-d3" id="LabelEdicionDeAula">
+                    @(AccionDeEdicion + " " + "Vehiculo")
+                </h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="@repuestosModel" OnValidSubmit="@GuardarRepuesto">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Matricula" class="mb-0">Codigo de Repuesto</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Matricula" @bind-Value="@repuestosModel.CodigoRepuesto" disabled="@(AccionDeEdicion == "Actualizar" ? true : false)"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Codigo Repuesto" />
+                            <ValidationMessage For="() => repuestosModel.CodigoRepuesto" />
+                        </div>
+                    </div>
+               
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Marca" class="mb-0">Marca</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Marca" @bind-Value="@repuestosModel.Marca"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Marca" />
+                            <ValidationMessage For="() => repuestosModel.Marca" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Tipo</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Modelo" @bind-Value="@repuestosModel.Tipo"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Tipo Repuesto" />
+                            <ValidationMessage For="() => repuestosModel.Tipo" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Fecha de Compra</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputDate id="Modelo" @bind-Value="@repuestosModel.FechaCompra"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Fecha de Compra" />
+                            <ValidationMessage For="() => repuestosModel.FechaCompra" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Precio</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputNumber id="Modelo" @bind-Value="@repuestosModel.Precio"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Precio" />
+                            <ValidationMessage For="() => repuestosModel.Precio" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+
+            private RepuestosDto[] ListaDeRepuestos;
+
+            private RepuestosDto repuestosModel = new();
+
+            private string AccionDeEdicion;
+
+            private string repuestosUpdate;
+
+            private string UtlHost = "https://localhost:44373/api";
+
+            protected override async Task OnInitializedAsync()
+            {
+                await ObtenerRepuestos();
+            }
+
+            private async Task ObtenerRepuestos()
+            {
+                ListaDeRepuestos = await Http.GetFromJsonAsync<RepuestosDto[]>($"{UtlHost}/Repuestos");
+            }
+
+            private async Task ObtenerVehiculoPorId(string CodigoRepuesto)
+            {
+                repuestosModel = await Http.GetFromJsonAsync<RepuestosDto>($"{UtlHost}/Repuestos/{CodigoRepuesto}");
+
+            }
+
+
+            private async Task MostrarModalDeAgregar()
+            {
+
+                AccionDeEdicion = "Agregar";
+
+                repuestosModel = new();
+
+                await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeRepuestos");
+
+
+            }
+
+            private async Task MostrarModalDeActualizar(string CodigoRepuesto)
+            {
+
+                AccionDeEdicion = "Actualizar";
+
+                await ObtenerVehiculoPorId(CodigoRepuesto);
+
+                repuestosUpdate = CodigoRepuesto;
+
+                await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeRepuestos");
+
+            }
+
+            private async Task GuardarRepuesto()
+            {
+                if (AccionDeEdicion == "Agregar")
+                {
+                    await AgregarRepuestos();
+                    repuestosModel = new();
+                }
+                else
+                {
+                    await ActualizarRepuestos();
+                }
+            }
+
+            private async Task AgregarRepuestos()
+            {
+                var Repuesto = repuestosUpdate;
+
+                using var response = await Http.PostAsJsonAsync($"{UtlHost}/Repuestos", Repuesto);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeRepuestos");
+
+                    await ObtenerRepuestos();
+
+                    await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo agregada correctamente");
+
+                }
+                else
+                {
+                    string errorMessage = response.ReasonPhrase;
+                    Console.WriteLine($"Error: {errorMessage}");
+
+                    await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo agregar el Vehiculo ");
+
+                }
+            }
+
+            private async Task ActualizarRepuestos ()
+    {
+        var Repuesto = repuestosModel;
+
+        using var response = await Http.PutAsJsonAsync($"{UtlHost}/Vehiculos/{repuestosUpdate}", Repuesto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeRepuestos");
+
+        await ObtenerRepuestos();
+
+        await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo actualizado correctamente");
+    }
+        else
+    {
+        string errorMessage = response.ReasonPhrase;
+        Console.WriteLine($"Error: {errorMessage}");
+
+        await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo actualizar la Matricula ");
+
+    }
+    }
+
+}

@@ -1,0 +1,230 @@
+﻿@page "/VehiculoClientes"
+<h3>VehiculosClientes</h3>
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="card dcard">
+    <div class="card-body px-1 px-md-3">
+
+        <form autocomplete="off">
+            <div class="d-flex justify-content-between flex-column flex-sm-row mb-3 px-2 px-sm-0">
+                <h3 class="text-125 pl-1 mb-3 mb-sm-0 text-secondary-d4">
+                    Listado de Vehiculos de Clientes
+                </h3>
+
+                <div class="mb-2 mb-sm-0">
+                    <button type="button" class="btn btn-secondary px-3 d-block w-100 text-95 radius-round border-2 brc-black-tp10" @onclick="MostrarModalDeAgregar">
+                        <i class="fa fa-plus mr-1"></i>
+                        Agregar <span class="d-sm-none d-md-inline">VehiculosClientes</span>
+                    </button>
+                </div>
+            </div>
+
+            @if (ListaVehiculosCliente == null)
+            {
+<p><em>Cargando Listado De Vehiculos de Clientes...</em></p> }
+            else
+            {
+<table id="simple-table" class="mb-0 table table-borderless table-bordered-x brc-secondary-l3 text-dark-m2 radius-1 overflow-hidden">
+    <thead class="text-dark-tp3 bgc-grey-l4 text-90 border-b-1 brc-transparent">
+        <tr>
+            <th>Matricula</th>
+            <th>Cedula Cliente</th>
+
+        </tr>
+    </thead>
+
+    <tbody class="mt-1">
+
+        @foreach (var VehiculoCliente in ListaVehiculosCliente)
+        {
+<tr class="bgc-h-yellow-l4 d-style">
+    <td class="text-600 text-dark">@VehiculoCliente.Matricula</td>
+    <td class="text-600 text-dark-d2">@VehiculoCliente.CedulaCliente</td>
+    <td>
+        <div class="d-none d-lg-flex">
+
+            <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-success btn-a-lighter-success" @onclick="() => MostrarModalDeActualizar(VehiculoCliente.Matricula)">
+                <i class="fa fa-pencil-alt"></i>
+            </button>
+
+            <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-danger btn-a-lighter-danger" @*@onclick="() => MostrarModalDeEliminar(VehiculoCliente.Matricula)"*@>
+                <i class="fa fa-trash-alt"></i>
+            </button>
+
+        </div>
+    </td>
+</tr>}
+    </tbody>
+</table>}
+
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalEdicionDeVehiculosCliente" tabindex="-1" role="dialog" aria-labelledby="LabelEdicionDeVehiculoCliente" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary-d3" id="LabelEdicionDeVehiculoCliente">
+                    @(AccionDeEdicion + " " + "VehiculosDeCliente")
+                </h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="@VehiculosClienteModel" OnValidSubmit="@GuardarVehiculoCliente">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Matricula de Vehiculo" class="mb-0">Matricula de Vehiculo</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="MatriculaVehiculo" @bind-Value="@VehiculosClienteModel.Matricula" disabled="@(AccionDeEdicion == "Actualizar" ? true : false)"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese número de la Matricula de su vehiculo" />
+                            <ValidationMessage For="() => VehiculosClienteModel.Matricula" />
+                        </div>
+                    </div>
+
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="CedulaCliente" class="mb-0">CedulaCliente</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="CedulaCliente" @bind-Value="@VehiculosClienteModel.CedulaCliente"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese la Cedula del Cliente" />
+                            <ValidationMessage For="() => VehiculosClienteModel.CedulaCliente" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code { private VehiculosClientesDto[] ListaVehiculosCliente;
+
+            private VehiculosClientesDto VehiculosClienteModel = new();
+
+            private string AccionDeEdicion;
+
+            private string VehiculoclienteUpdate;
+
+            private string UtlHost = "https://localhost:44373/api";
+
+            protected override async Task OnInitializedAsync() //Esto es lo primero que se ejecutará
+            {
+                await ObtenerVehiculosClientes(); //con solo llamar a este método, ya se puede cargar la lista de aulas a nivel de la vista
+            }
+
+            private async Task ObtenerVehiculosClientes()
+            {
+                ListaVehiculosCliente = await Http.GetFromJsonAsync<VehiculosClientesDto[]>($"{UtlHost}/VehiculosDeClientes");
+            }
+
+            private async Task ObtenerVehiculoClientePorId(string Matricula)
+            {
+                VehiculosClienteModel = await Http.GetFromJsonAsync<VehiculosClientesDto>($"{UtlHost}/VehiculosDeClientes/{Matricula}");
+
+            }
+
+            private async Task MostrarModalDeAgregar()
+            {
+
+                AccionDeEdicion = "Agregar";
+
+                VehiculosClienteModel = new();
+
+                await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeVehiculosCliente");
+
+            }
+
+            private async Task MostrarModalDeActualizar(string Matricula)
+            {
+
+                AccionDeEdicion = "Actualizar";
+
+                await ObtenerVehiculoClientePorId(Matricula);
+
+                VehiculoclienteUpdate = Matricula;
+
+                await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeVehiculosCliente");
+
+            }
+
+            private async Task GuardarVehiculoCliente()
+            {
+                if (AccionDeEdicion == "Agregar")
+                {
+                    await AgregarVehiculosClientes();
+                    VehiculosClienteModel = new();
+                }
+                else
+                {
+                    await ActualizarVehiculosCliente();
+                }
+            }
+
+            private async Task AgregarVehiculosClientes()
+            {
+                var VehiculosClientes = VehiculosClienteModel;
+
+                using var response = await Http.PostAsJsonAsync($"{UtlHost}/VehiculosDeClientes", VehiculosClientes);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeVehiculosCliente");
+
+                    await ObtenerVehiculosClientes();
+
+                    await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo de Cliente agregado correctamente");
+
+                }
+                else
+                {
+                    string errorMessage = response.ReasonPhrase;
+                    Console.WriteLine($"Error: {errorMessage}");
+
+                    await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo agregar el Vehiculo del Cliente ");
+
+                }
+            }
+
+            private async Task ActualizarVehiculosCliente()
+            {
+                var VehiculosClientes = VehiculosClienteModel;
+
+                using var response = await Http.PutAsJsonAsync($"{UtlHost}/VehiculosDeClientes/{VehiculoclienteUpdate}", VehiculosClientes);
+
+                if (response.IsSuccessStatusCode) //si todo sale bien con el llamado al API
+                {
+                    await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeVehiculosCliente");
+
+                    await ObtenerVehiculosClientes();
+
+                    await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo Cliente actualizado correctamente");
+                }
+                else
+                {
+                    string errorMessage = response.ReasonPhrase;
+                    Console.WriteLine($"Error: {errorMessage}");
+
+                    await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo actualizar el vehiculo del Cliente ");
+
+                }
+            } }

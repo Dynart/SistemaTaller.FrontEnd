@@ -1,0 +1,284 @@
+﻿@page "/mecanicos"
+
+<h3>Mecanicos</h3>
+
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="card dcard">
+    <div class="card-body px-1 px-md-3">
+
+        <form autocomplete="off">
+            <div class="d-flex justify-content-between flex-column flex-sm-row mb-3 px-2 px-sm-0">
+                <h3 class="text-125 pl-1 mb-3 mb-sm-0 text-secondary-d4">
+                    Listado de Mecanicos
+                </h3>
+
+                <div class="mb-2 mb-sm-0">
+                    <button type="button" class="btn btn-secondary px-3 d-block w-100 text-95 radius-round border-2 brc-black-tp10" @onclick="MostrarModalDeAgregar">
+                        <i class="fa fa-plus mr-1"></i>
+                        Agregar <span class="d-sm-none d-md-inline">Mecanicos</span>
+                    </button>
+                </div>
+            </div>
+
+            @if (ListaDeMecanicos == null)
+            {
+                <p><em>Cargando Listado De MEcanicos...</em></p>
+            }
+            else
+            {
+                <table id="simple-table" class="mb-0 table table-borderless table-bordered-x brc-secondary-l3 text-dark-m2 radius-1 overflow-hidden">
+                    <thead class="text-dark-tp3 bgc-grey-l4 text-90 border-b-1 brc-transparent">
+                        <tr>
+                            <th>Cedula </th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Telefono</th>
+                            <th>Salario</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="mt-1">
+
+                        @foreach (var Mecanico in ListaDeMecanicos)
+                        {
+                        <tr class="bgc-h-yellow-l4 d-style">
+                            <td class="text-600 text-dark">@Mecanico.CedulaMecanico</td>
+                            <td class="text-600 text-dark-d2">@Mecanico.Nombre</td>
+                            <td class="d-none d-sm-table-cell text-grey-d1">@Mecanico.Apellidos</td>
+                            <td class="text-600 text-dark">@Mecanico.Telefono</td>
+                            <td class="text-600 text-dark-d2">@Mecanico.Salario</td>
+                            <td>
+                                <div class="d-none d-lg-flex">
+
+                                    <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-success btn-a-lighter-success" @onclick="() => MostrarModalDeActualizar(Mecanico.CedulaMecanico)">
+                                        <i class="fa fa-pencil-alt"></i>
+                                    </button>
+
+                                    <button type="button" class="mx-2px btn radius-1 border-2 btn-xs btn-brc-tp btn-light-secondary btn-h-lighter-danger btn-a-lighter-danger" @*@onclick="() => MostrarModalDeEliminar(Aula.NumeroAula)"*@>
+                                        <i class="fa fa-trash-alt"></i>
+                                    </button>
+
+
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalEdicionDeMecanicos" tabindex="-1" role="dialog" aria-labelledby="LabelEdicionDeAula" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary-d3" id="LabelEdicionDeAula">
+                    @(AccionDeEdicion + " " + "Mecanico")
+                </h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="@mecanicosModel" OnValidSubmit="@GuardarMecanicos">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Matricula" class="mb-0">Cedula del Mecanico</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Matricula" @bind-Value="@mecanicosModel.CedulaMecanico" disabled="@(AccionDeEdicion == "Actualizar" ? true : false)"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese cedula del mecanico" />
+                            <ValidationMessage For="() => mecanicosModel.CedulaMecanico" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Marca" class="mb-0">Nombre</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Marca" @bind-Value="@mecanicosModel.Nombre"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Nombre" />
+                            <ValidationMessage For="() => mecanicosModel.Nombre" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Apellidos</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Modelo" @bind-Value="@mecanicosModel.Apellidos"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Apellidos" />
+                            <ValidationMessage For="() => mecanicosModel.Apellidos" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Telefono</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputText id="Modelo" @bind-Value="@mecanicosModel.Telefono"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Telefono" />
+                            <ValidationMessage For="() => mecanicosModel.Telefono" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-form-label text-sm-right pr-0">
+                            <label for="Modelo" class="mb-0">Salario</label>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <InputNumber id="Modelo" @bind-Value="@mecanicosModel.Salario"
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Salario" />
+                            <ValidationMessage For="() => mecanicosModel.Salario" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    private MecanicosDto[] ListaDeMecanicos;
+
+    private MecanicosDto mecanicosModel = new();
+
+    private string AccionDeEdicion;
+
+    private string mecanicoUpdate;
+
+    private string UtlHost = "https://localhost:44373/api";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ObtenerMecanicos();
+    }
+
+    private async Task ObtenerMecanicos()
+    {
+        ListaDeMecanicos = await Http.GetFromJsonAsync<MecanicosDto[]>($"{UtlHost}/Mecanicos");
+    }
+
+    private async Task ObtenerMecanicoPorId(string CedulaMecanico)
+    {
+        mecanicosModel = await Http.GetFromJsonAsync<MecanicosDto>($"{UtlHost}/Mecanicos/{CedulaMecanico}");
+
+    }
+
+
+    private async Task MostrarModalDeAgregar()
+    {
+
+        AccionDeEdicion = "Agregar";
+
+        mecanicosModel = new();
+
+        await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeMecanicos");
+
+
+    }
+
+    private async Task MostrarModalDeActualizar(string CedulaMecanico)
+    {
+
+        AccionDeEdicion = "Actualizar";
+
+        await ObtenerMecanicoPorId(CedulaMecanico);
+
+        mecanicoUpdate = CedulaMecanico;
+
+        await JSRuntime.InvokeAsync<object>("global.openModal", "ModalEdicionDeMecanicos");
+
+    }
+
+    private async Task GuardarMecanicos()
+    {
+        if (AccionDeEdicion == "Agregar")
+        {
+            await AgregarMecanicos();
+            mecanicosModel = new();
+        }
+        else
+        {
+            await ActualizarMecanicos();
+        }
+    }
+
+    private async Task AgregarMecanicos()
+    {
+        var Mecanico = mecanicosModel;
+
+        using var response = await Http.PostAsJsonAsync($"{UtlHost}/Mecanicos", Mecanico);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeMecanicos");
+
+            await ObtenerMecanicos();
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Mecanico agregado correctamente");
+
+        }
+        else
+        {
+            string errorMessage = response.ReasonPhrase;
+            Console.WriteLine($"Error: {errorMessage}");
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo agregar el Mecanico ");
+
+        }
+    }
+
+    private async Task ActualizarMecanicos()
+    {
+        var Mecanico = mecanicosModel; 
+
+        using var response = await Http.PutAsJsonAsync($"{UtlHost}/Mecanicos/{mecanicoUpdate}", Mecanico);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeMecanicos");
+
+            await ObtenerMecanicos(); 
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Mecanico actualizado correctamente");
+        }
+        else
+        {
+            string errorMessage = response.ReasonPhrase;
+            Console.WriteLine($"Error: {errorMessage}"); 
+
+            await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo actualizar el Mecanico ");
+
+        }
+    }
+
+}

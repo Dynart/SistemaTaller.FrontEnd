@@ -94,7 +94,7 @@
 
                         <div class="col-sm-8">
                             <InputText id="Matricula" @bind-Value="@vehiculoModel.Matricula" disabled="@(AccionDeEdicion == "Actualizar" ? true : false)"
-                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese número de Matricula" />
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Matricula del Vehiculo" />
                             <ValidationMessage For="() => vehiculoModel.Matricula" />
                         </div>
                     </div>
@@ -106,7 +106,7 @@
 
                         <div class="col-sm-8">
                             <InputText id="Marca" @bind-Value="@vehiculoModel.MarcaVehiculo"
-                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese horario" />
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Marca" />
                             <ValidationMessage For="() => vehiculoModel.MarcaVehiculo" />
                         </div>
                     </div>
@@ -118,7 +118,7 @@
 
                         <div class="col-sm-8">
                             <InputText id="Modelo" @bind-Value="@vehiculoModel.Modelo"
-                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese código curso" />
+                                       class="form-control col-sm-12 col-md-12" placeholder="Ingrese Modelo" />
                             <ValidationMessage For="() => vehiculoModel.Modelo" />
                         </div>
                     </div>
@@ -199,7 +199,7 @@
         }
         else
         {
-            await ActualizarVehiculo(); //llama al método que va al API a actualizar un Aula
+            await ActualizarVehiculo(); 
         }
     }
 
@@ -230,22 +230,22 @@
 
     private async Task ActualizarVehiculo()
     {
-        var Vehiculos = vehiculoModel; //Este objeto "AulaDtoModel", contiene los valores que el usuario ingresa en los texbox, la magia lo hace el <EditForm Model="@AulaDtoModel", que llena automaticamente el objeto con lo que el usuario ingresa
+        var Vehiculos = vehiculoModel;
 
         using var response = await Http.PutAsJsonAsync($"{UtlHost}/Vehiculos/{matriculaUpdate}", Vehiculos);// ejemplo: https://localhost:44302/api/Aulas/23
 
-        if (response.IsSuccessStatusCode) //si todo sale bien con el llamado al API
+        if (response.IsSuccessStatusCode) 
         {
             await JSRuntime.InvokeAsync<object>("global.closeModal", "ModalEdicionDeVehiculo");
 
-            await ObtenerVehiculos(); //Se recarga la lista da ulas para poder ver el registro actualizado
+            await ObtenerVehiculos(); 
 
             await JSRuntime.InvokeAsync<object>("global.mostrarAlertaExito", "Vehiculo actualizado correctamente");
         }
         else
         {
             string errorMessage = response.ReasonPhrase;
-            Console.WriteLine($"Error: {errorMessage}"); //Se muestra en la consola el error que devuelve el API
+            Console.WriteLine($"Error: {errorMessage}");
 
             await JSRuntime.InvokeAsync<object>("global.mostrarAlertaError", "No se pudo actualizar la Matricula ");
 
