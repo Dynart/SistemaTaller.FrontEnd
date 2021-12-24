@@ -11,9 +11,11 @@ namespace SistemaTaller.FrontEnd.Dtos
         [Required(ErrorMessage = "{0} es un campo obligatorio")]
         [MaxLength(15, ErrorMessage = "{0} tiene que tener maximo {1} caracteres")]
         public string CedulaCliente { get; set; }
+
         [Required(ErrorMessage = "{0} es un campo obligatorio")]
         [MaxLength(40, ErrorMessage = "{0} Tiene que tener maximo {1} caracteres")]
         public string Nombre { get; set; }
+
         [Required(ErrorMessage = "{0} es un campo obligatorio")]
         [MaxLength(50, ErrorMessage = "{0} Tiene que tener maximo {1} caracteres")]
         public string Apellidos { get; set; }
